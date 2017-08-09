@@ -1,8 +1,21 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import registerServiceWorker from './registerServiceWorker';
+'use strict';
 
-ReactDOM.render(<App />, document.getElementById('root'));
-registerServiceWorker();
+import React from "react";
+import {render} from "react-dom";
+
+// pull in the ag-grid styles we're interested in
+import "ag-grid-root/dist/styles/ag-grid.css";
+import "ag-grid-root/dist/styles/theme-fresh.css";
+
+// only necessary if you're using ag-Grid-Enterprise features
+// import "ag-grid-enterprise";
+
+// our application
+import PlayerGrid from "./PlayerGrid";
+
+document.addEventListener('DOMContentLoaded', () => {
+    render(
+        <PlayerGrid/>,
+        document.querySelector('#app')
+    );
+});

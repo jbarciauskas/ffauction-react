@@ -1,0 +1,21 @@
+{
+  "name": "ffauction",
+  "version": "1.0.0",
+  "description": "A tool to help you generate accurate values based on real player projections during your draft",
+  "main": "index.js",
+  "repository": "git@github.com:jbarciauskas/ffauction.git",
+  "author": "Joel Barciauskas <barciajo@gmail.com>",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1",
+    "react-scripts": "1.0.11",
+    "json-server": "0.9.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}

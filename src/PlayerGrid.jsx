@@ -9,6 +9,7 @@ export default class extends Component {
 
         this.onPlayerPriceChange = this.onPlayerPriceChange.bind(this);
         this.clearSavedPrices = this.clearSavedPrices.bind(this);
+        this.onGridReady = this.onGridReady.bind(this);
         this.state = {
             quickFilterText: null,
             columnDefs: this.createColumnDefs()
@@ -27,8 +28,11 @@ export default class extends Component {
 
     onPlayerPriceChange(event) {
       if(event.column.colId == "purchase_price") {
+        let player = event.data;
         event.data.purchase_price = parseFloat(event.data.purchase_price);
         localStorage.setItem(event.data.player_id + ".purchase_price", event.data.purchase_price);
+        console.log(player);
+        // bubble up
         this.props.onPlayerPriceChange(event);
       }
     }
@@ -39,6 +43,7 @@ export default class extends Component {
         localStorage.removeItem(player.player_id + ".purchase_price");
       });
       this.props.onPlayerPriceChange();
+      this.gridApi.setRowData(this.props.rowData);
     }
 
     createColumnDefs() {
@@ -48,8 +53,8 @@ export default class extends Component {
             {headerName: "Team", field: "team", filter: "text"},
             {headerName: "Projected Points", field: "points", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Base Value ($)", field: "base_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
-            {headerName: "Inf Value ($)", field: "inflated_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
-            {headerName: "Actual ($)", field: "purchase_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceChange}
+            {headerName: "Inf Value ($)", field: "inflated_price", filter: "number", cellRenderer: formatNumber, sort: 'desc', sortingOrder: ['desc','asc']},
+            {headerName: "Actual ($)", field: "purchase_price", filter: "number", cellRenderer: formatInt, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceChange}
         ];
     }
 
@@ -84,7 +89,14 @@ export default class extends Component {
 
 function formatNumber(params) {
     let num = parseFloat(Math.round(params.value * 100) / 100).toFixed(2);
-    if(isNaN(num)) {
+    if(isNaN(num) || num === null) {
+      return "-";
+    }
+    else return num;
+}
+function formatInt(params) {
+    let num = parseInt(params.value);
+    if(isNaN(num) || num === null) {
       return "-";
     }
     else return num;

@@ -13,22 +13,12 @@ import "ag-grid-root/dist/styles/theme-fresh.css";
 // our application
 import PlayerGrid from "./PlayerGrid";
 
-const customStyles = {
-  content : {
-    top                   : '50%',
-    left                  : '50%',
-    right                 : 'auto',
-    bottom                : 'auto',
-    marginRight           : '-50%',
-    transform             : 'translate(-50%, -50%)'
-  }
-};
-
 class App extends React.Component {
   constructor() {
     super();
     this.state = {
       startingBudget: 1980,
+      remainingBudget: 1980,
       rowData: [],
       showModal: false
     }
@@ -39,15 +29,20 @@ class App extends React.Component {
 
     axios.get(`http://localhost:4000/players`)
     .then(res => {
+      let inflationData = calcInflation(mergeSavedPrices(res.data), this.state.startingBudget);
       this.setState({
-        rowData: calcInflation(mergeSavedPrices(res.data), this.state.startingBudget),
+        rowData: inflationData['players'],
+        remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
       });
     });
   }
 
   onPlayerPriceChange() {
+    console.log("Recalculating inflation");
+    let inflationData = calcInflation(this.state.rowData, this.state.startingBudget);
     this.setState({
-      rowData: calcInflation(this.state.rowData, this.state.startingBudget)
+      rowData: inflationData['players'],
+      remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
     });
   }
 
@@ -74,8 +69,10 @@ class App extends React.Component {
         wow.
       </Tooltip>
     );
+    console.log(this.state);
     return (
       <div>
+        <div>Remaining budget: <b>{this.state.remainingBudget}</b></div>
         <Button
           bsStyle="primary"
           bsSize="large"
@@ -115,7 +112,7 @@ class App extends React.Component {
             <Button onClick={this.close}>Close</Button>
           </Modal.Footer>
         </Modal>
-       <PlayerGrid
+        <PlayerGrid
           rowData={this.state.rowData}
           onPlayerPriceChange={this.onPlayerPriceChange}>
         </PlayerGrid>
@@ -128,16 +125,18 @@ ReactDOM.render(<App />, document.getElementById("app"));
 
 function calcInflation(players, startingBudget) {
   let accumulatedValue = 0;
+  let usedBudget = 0;
   players.forEach((player) => {
-    if(player.hasOwnProperty('purchase_price') && !isNaN(player.purchase_price)) {
+    if(player.hasOwnProperty('purchase_price') && !isNaN(player.purchase_price) && player.purchase_price !== null) {
       accumulatedValue += player.base_price - player.purchase_price;
+      usedBudget = player.purchase_price;
     }
   });
   let inflationRate = (startingBudget + accumulatedValue) / startingBudget
   players.forEach((player) => {
     player.inflated_price = inflationRate * player.base_price;
   });
-  return players;
+  return {"players": players, "usedBudget": usedBudget};
 }
 
 function mergeSavedPrices(players) {

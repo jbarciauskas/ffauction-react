@@ -7,11 +7,12 @@ export default class extends Component {
     constructor(props) {
         super(props);
 
-        this.onPlayerPriceEntry = this.onPlayerPriceEntry.bind(this);
+        this.onPlayerPriceChange = this.onPlayerPriceChange.bind(this);
+        this.clearSavedPrices = this.clearSavedPrices.bind(this);
         this.state = {
             quickFilterText: null,
             columnDefs: this.createColumnDefs()
-        }
+        };
     }
 
     onGridReady(params) {
@@ -24,11 +25,11 @@ export default class extends Component {
         this.setState({quickFilterText: event.target.value});
     }
 
-    onPlayerPriceEntry(event) {
+    onPlayerPriceChange(event) {
       if(event.column.colId == "purchase_price") {
         event.data.purchase_price = parseFloat(event.data.purchase_price);
         localStorage.setItem(event.data.player_id + ".purchase_price", event.data.purchase_price);
-        this.props.onPlayerPurchase(event);
+        this.props.onPlayerPriceChange(event);
       }
     }
 
@@ -37,7 +38,7 @@ export default class extends Component {
         player.purchase_price = null;
         localStorage.removeItem(player.player_id + ".purchase_price");
       });
-      this.setState({rowData: this.props.rowData});
+      this.props.onPlayerPriceChange();
     }
 
     createColumnDefs() {
@@ -48,7 +49,7 @@ export default class extends Component {
             {headerName: "Projected Points", field: "points", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Base Value ($)", field: "base_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Inf Value ($)", field: "inflated_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
-            {headerName: "Actual ($)", field: "purchase_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceEntry}
+            {headerName: "Actual ($)", field: "purchase_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceChange}
         ];
     }
 

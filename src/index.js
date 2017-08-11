@@ -3,7 +3,7 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 import axios from 'axios';
-import Modal from 'react-modal';
+import {Button,Modal,OverlayTrigger,Popover,Tooltip} from 'react-bootstrap';
 
 
 // pull in the ag-grid styles we're interested in
@@ -28,15 +28,14 @@ class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      modalIsOpen: false,
       startingBudget: 1980,
-      rowData: []
+      rowData: [],
+      showModal: false
     }
 
-    this.openModal = this.openModal.bind(this);
-    this.afterOpenModal = this.afterOpenModal.bind(this);
-    this.closeModal = this.closeModal.bind(this);
-    this.onPlayerPurchase = this.onPlayerPurchase.bind(this);
+    this.onPlayerPriceChange = this.onPlayerPriceChange.bind(this);
+    this.close = this.close.bind(this);
+    this.open = this.open.bind(this);
 
     axios.get(`http://localhost:4000/players`)
     .then(res => {
@@ -46,51 +45,79 @@ class App extends React.Component {
     });
   }
 
-  openModal() {
-    this.setState({modalIsOpen: true});
-  }
-
-  afterOpenModal() {
-    // references are now sync'd and can be accessed.
-    this.subtitle.style.color = '#f00';
-  }
-
-  closeModal() {
-    this.setState({modalIsOpen: false});
-  }
-
-  onPlayerPurchase() {
+  onPlayerPriceChange() {
     this.setState({
       rowData: calcInflation(this.state.rowData, this.state.startingBudget)
     });
   }
 
+  getInitialState() {
+    return { showModal: false };
+  }
+
+  close() {
+    this.setState({ showModal: false });
+  }
+
+  open() {
+    this.setState({ showModal: true });
+  }
+
   render() {
+    const popover = (
+      <Popover id="modal-popover" title="popover">
+        very popover. such engagement
+      </Popover>
+    );
+    const tooltip = (
+      <Tooltip id="modal-tooltip">
+        wow.
+      </Tooltip>
+    );
     return (
       <div>
-        <button onClick={this.openModal}>Open Modal</button>
-        <Modal
-          isOpen={this.state.modalIsOpen}
-          onAfterOpen={this.afterOpenModal}
-          onRequestClose={this.closeModal}
-          style={customStyles}
-          contentLabel="Example Modal"
+        <Button
+          bsStyle="primary"
+          bsSize="large"
+          onClick={this.open}
         >
+          Launch demo modal
+        </Button>
 
-          <h2 ref={subtitle => this.subtitle = subtitle}>Hello</h2>
-          <button onClick={this.closeModal}>close</button>
-          <div>I am a modal</div>
-          <form>
-            <input />
-            <button>tab navigation</button>
-            <button>stays</button>
-            <button>inside</button>
-            <button>the modal</button>
-          </form>
+        <Modal show={this.state.showModal} onHide={this.close}>
+          <Modal.Header closeButton>
+            <Modal.Title>Modal heading</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <h4>Text in a modal</h4>
+            <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula.</p>
+
+            <h4>Popover in a modal</h4>
+            <p>there is a <OverlayTrigger overlay={popover}><a href="#">popover</a></OverlayTrigger> here</p>
+
+            <h4>Tooltips in a modal</h4>
+            <p>there is a <OverlayTrigger overlay={tooltip}><a href="#">tooltip</a></OverlayTrigger> here</p>
+
+            <hr />
+
+            <h4>Overflowing text to show scroll behavior</h4>
+            <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+            <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.</p>
+            <p>Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.</p>
+            <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+            <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.</p>
+            <p>Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.</p>
+            <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+            <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.</p>
+            <p>Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={this.close}>Close</Button>
+          </Modal.Footer>
         </Modal>
-        <PlayerGrid
+       <PlayerGrid
           rowData={this.state.rowData}
-          onPlayerPurchase={this.onPlayerPurchase}>
+          onPlayerPriceChange={this.onPlayerPriceChange}>
         </PlayerGrid>
       </div>
     );

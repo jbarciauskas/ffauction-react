@@ -19,6 +19,7 @@ class App extends React.Component {
     this.state = {
       startingBudget: 1980,
       remainingBudget: 1980,
+      inflationRate: 1,
       rowData: [],
       showModal: false
     }
@@ -33,6 +34,7 @@ class App extends React.Component {
       this.setState({
         rowData: inflationData['players'],
         remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
+        inflationRate: inflationData['inflationRate'],
       });
     });
   }
@@ -43,6 +45,7 @@ class App extends React.Component {
     this.setState({
       rowData: inflationData['players'],
       remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
+      inflationRate: inflationData['inflationRate'],
     });
   }
 
@@ -56,6 +59,10 @@ class App extends React.Component {
 
   open() {
     this.setState({ showModal: true });
+  }
+
+  formatInflationRate(rate) {
+    return (rate*100).toFixed(2) + "%";
   }
 
   render() {
@@ -73,6 +80,7 @@ class App extends React.Component {
     return (
       <div>
         <div>Remaining budget: <b>{this.state.remainingBudget}</b></div>
+        <div>Inflation rate: <b>{this.formatInflationRate(this.state.inflationRate)}</b></div>
         <Button
           bsStyle="primary"
           bsSize="large"
@@ -136,7 +144,7 @@ function calcInflation(players, startingBudget) {
   players.forEach((player) => {
     player.inflated_price = inflationRate * player.base_price;
   });
-  return {"players": players, "usedBudget": usedBudget};
+  return {"players": players, "usedBudget": usedBudget, "inflationRate": inflationRate};
 }
 
 function mergeSavedPrices(players) {

@@ -224,6 +224,12 @@ class App extends React.Component {
       return (parseFloat(value) * 100).toFixed(2) + "%";
     }
   }
+
+  getDropOffCellClass(val) {
+    if(parseFloat(val) > 40) return 'danger';
+    else if(parseFloat(val) > 20) return 'warning';
+  }
+
   clearSavedData(event) {
     var doubleCheck = confirm("Are you sure you want to clear price data and restart the auction?");
     if(doubleCheck) {
@@ -303,7 +309,9 @@ class App extends React.Component {
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'qb', 0, 'inflated_price')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'qb', 1, 'name')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'qb', 1, 'inflated_price')}</td>
-                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'qb')}</td>
+                  <td className={this.getDropOffCellClass(this.getNextBestDrop(this.state.currentDraftStatus, 'qb'))}>
+                    {this.getNextBestDrop(this.state.currentDraftStatus, 'qb')}
+                  </td>
                 </tr>
                 <tr>
                   <td>RB</td>
@@ -311,7 +319,9 @@ class App extends React.Component {
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'rb', 0, 'inflated_price')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'rb', 1, 'name')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'rb', 1, 'inflated_price')}</td>
-                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'rb')}</td>
+                  <td className={this.getDropOffCellClass(this.getNextBestDrop(this.state.currentDraftStatus, 'rb'))}>
+                    {this.getNextBestDrop(this.state.currentDraftStatus, 'rb')}
+                  </td>
                 </tr>
                 <tr>
                   <td>WR</td>
@@ -319,7 +329,9 @@ class App extends React.Component {
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'wr', 0, 'inflated_price')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'wr', 1, 'name')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'wr', 1, 'inflated_price')}</td>
-                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'wr')}</td>
+                  <td className={this.getDropOffCellClass(this.getNextBestDrop(this.state.currentDraftStatus, 'wr'))}>
+                    {this.getNextBestDrop(this.state.currentDraftStatus, 'wr')}
+                  </td>
                 </tr>
                 <tr>
                   <td>TE</td>
@@ -327,7 +339,9 @@ class App extends React.Component {
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'te', 0, 'inflated_price')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'te', 1, 'name')}</td>
                   <td>{this.getNextBest(this.state.currentDraftStatus, 'te', 1, 'inflated_price')}</td>
-                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'te')}</td>
+                  <td className={this.getDropOffCellClass(this.getNextBestDrop(this.state.currentDraftStatus, 'te'))}>
+                    {this.getNextBestDrop(this.state.currentDraftStatus, 'te')}
+                  </td>
                 </tr>
                 </tbody>
                 </Table>

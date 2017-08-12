@@ -131,7 +131,7 @@ function formatNumber(params) {
 function formatInt(params) {
     let num = parseInt(params.value);
     if(isNaN(num) || num === null) {
-      return "-";
+      return '<i style="color: gray">Enter price...</i>';
     }
     else return num;
 }

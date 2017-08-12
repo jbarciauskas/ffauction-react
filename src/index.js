@@ -87,11 +87,12 @@ class App extends React.Component {
 
   onPlayerDataChange() {
     console.log("Recalculating inflation");
-    let inflationData = calcInflation(this.state.rowData, this.state.startingBudget);
+    let inflationData = calcInflation(this.state.rowData, this.state.startingBudget, this.state.teamList);
     this.setState({
       rowData: inflationData['players'],
       remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
       inflationRate: inflationData['inflationRate'],
+      myRemainingBudget: this.leagueSettings.team_budget - inflationData['mySpentBudget'],
     });
   }
 
@@ -122,12 +123,13 @@ class App extends React.Component {
     });
     axios.post(`http://localhost:5000/players`, this.leagueSettings)
     .then(res => {
-      let inflationData = calcInflation(mergeSavedData(res.data), this.state.startingBudget);
+      let inflationData = calcInflation(mergeSavedData(res.data), this.state.startingBudget, this.state.teamList);
       this.setState({
         startingBudget: this.state.startingBudget,
         rowData: inflationData['players'],
         remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
         inflationRate: inflationData['inflationRate'],
+        myRemainingBudget: this.leagueSettings.team_budget - inflationData['mySpentBudget'],
       });
     });
     localStorage.setItem('leagueSettings', JSON.stringify(this.leagueSettings));
@@ -241,18 +243,21 @@ class App extends React.Component {
               <h1>Draft board</h1>
             </Col>
           </Row>
-          <Accordion>
+          <Accordion defaultActiveKey="1">
             <Panel header="Draft details" eventKey="1">
+            <Row>
+              <Col md={3}>
+              My remaining budget: <b>${this.state.myRemainingBudget}</b>
+              </Col>
+              <Col md={3}>
+              Total remaining budget: <b>${this.state.remainingBudget}</b>
+              </Col>
+              <Col md={3}>
+              Inflation rate: <b>{this.formatInflationRate(this.state.inflationRate)}</b>
+              </Col>
+            </Row>
             </Panel>
           </Accordion>
-          <Row>
-            <Col md={3}>
-            Remaining budget: <b>${this.state.remainingBudget}</b>
-            </Col>
-            <Col md={3}>
-            Inflation rate: <b>{this.formatInflationRate(this.state.inflationRate)}</b>
-            </Col>
-          </Row>
 
           <Modal show={this.state.showModal} onHide={this.close}>
           <Modal.Header closeButton>
@@ -456,20 +461,25 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById("app"));
 
-function calcInflation(players, startingBudget) {
+function calcInflation(players, startingBudget, teamList) {
   let accumulatedValue = 0;
   let usedBudget = 0;
+  let mySpentBudget = 0;
   players.forEach((player) => {
     if(player.hasOwnProperty('purchase_price') && !isNaN(player.purchase_price) && player.purchase_price !== null) {
       accumulatedValue += player.base_price - player.purchase_price;
       usedBudget += player.purchase_price;
+      // @TODO some other way to set a team as "yours"?
+      if(teamList && player.draft_team == teamList[0]) {
+        mySpentBudget += player.purchase_price;
+      }
     }
   });
   let inflationRate = (startingBudget + accumulatedValue) / startingBudget
   players.forEach((player) => {
     player.inflated_price = inflationRate * player.base_price;
   });
-  return {"players": players, "usedBudget": usedBudget, "inflationRate": inflationRate};
+  return {"players": players, "usedBudget": usedBudget, "inflationRate": inflationRate, "mySpentBudget": mySpentBudget};
 }
 
 function mergeSavedData(players) {

@@ -8,7 +8,6 @@ export default class extends Component {
         super(props);
 
         this.onPlayerDataChange = this.onPlayerDataChange.bind(this);
-        this.clearSavedData = this.clearSavedData.bind(this);
         this.onGridReady = this.onGridReady.bind(this);
         this.getRowStyle = this.getRowStyle.bind(this);
         this.state = {
@@ -37,16 +36,6 @@ export default class extends Component {
       console.log(player);
       // bubble up
       this.props.onPlayerDataChange(event);
-      this.gridApi.setRowData(this.props.rowData);
-    }
-
-    clearSavedData(event) {
-      this.props.rowData.forEach((player) => {
-        player.purchase_price = null;
-        player.draft_team = null;
-        localStorage.removeItem("player-" + player.player_id);
-      });
-      this.props.onPlayerDataChange();
       this.gridApi.setRowData(this.props.rowData);
     }
 
@@ -85,12 +74,10 @@ export default class extends Component {
         return (
             <div >
               <Row>
-                <Col md={3}>
-                  <FormControl type="text" onChange={this.onQuickFilterText.bind(this)}
-                                           placeholder="Type text to filter..."/>
-                </Col>
-                <Col md={1}>
-                <Button id="btDestroyGrid" onClick={this.clearSavedData}>Restart auction and reset values</Button>
+                <Col md={4}>
+                  <FormControl style={{"margin-bottom":"5px"}} type="text"
+                    onChange={this.onQuickFilterText.bind(this)}
+                    placeholder="Type player name, position, or team to filter..."/>
                 </Col>
               </Row>
               <Row>

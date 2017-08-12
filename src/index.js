@@ -3,7 +3,7 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 import axios from 'axios';
-import {Accordion,Panel,Navbar,Nav,NavItem,Button,Grid,Row,Col,ControlLabel,FormControl,FormGroup,Form,Modal,OverlayTrigger,Popover,Tabs,Tab,Tooltip} from 'react-bootstrap';
+import {Accordion,Panel,Navbar,Nav,NavItem,Button,Grid,Row,Col,ControlLabel,FormControl,FormGroup,Form,Modal,OverlayTrigger,Popover,Tabs,Tab,Table,Tooltip} from 'react-bootstrap';
 
 
 // pull in the ag-grid styles we're interested in
@@ -64,16 +64,17 @@ class App extends React.Component {
     let startingBudget = ((this.leagueSettings.num_teams * this.leagueSettings.team_budget)
       - (this.leagueSettings.roster.k * this.leagueSettings.num_teams
           + this.leagueSettings.roster.team_def * this.leagueSettings.num_teams));
+    let currentDraftStatus = calcCurrentDraftStatus([], startingBudget, this.teamList);
     this.state = {
+      currentDraftStatus: currentDraftStatus,
       startingBudget: startingBudget,
-      remainingBudget: startingBudget,
-      inflationRate: 1,
       rowData: [],
       showModal: false,
       leagueSettings: this.leagueSettings,
       teamList: this.teamList,
     };
 
+    this.clearSavedData = this.clearSavedData.bind(this);
     this.onPlayerDataChange = this.onPlayerDataChange.bind(this);
     this.onTeamNameChange = this.onTeamNameChange.bind(this);
     this.getTeamRow = this.getTeamRow.bind(this);
@@ -86,13 +87,10 @@ class App extends React.Component {
   }
 
   onPlayerDataChange() {
-    console.log("Recalculating inflation");
-    let inflationData = calcInflation(this.state.rowData, this.state.startingBudget, this.state.teamList);
+    let currentDraftStatus = calcCurrentDraftStatus(this.state.rowData, this.state.startingBudget, this.state.teamList);
     this.setState({
-      rowData: inflationData['players'],
-      remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
-      inflationRate: inflationData['inflationRate'],
-      myRemainingBudget: this.leagueSettings.team_budget - inflationData['mySpentBudget'],
+      rowData: this.state.rowData,
+      currentDraftStatus: currentDraftStatus,
     });
   }
 
@@ -123,13 +121,11 @@ class App extends React.Component {
     });
     axios.post(`http://localhost:5000/players`, this.leagueSettings)
     .then(res => {
-      let inflationData = calcInflation(mergeSavedData(res.data), this.state.startingBudget, this.state.teamList);
+      let currentDraftStatus = calcCurrentDraftStatus(mergeSavedData(res.data), this.state.startingBudget, this.state.teamList);
       this.setState({
         startingBudget: this.state.startingBudget,
-        rowData: inflationData['players'],
-        remainingBudget: this.state.startingBudget - inflationData['usedBudget'],
-        inflationRate: inflationData['inflationRate'],
-        myRemainingBudget: this.leagueSettings.team_budget - inflationData['mySpentBudget'],
+        rowData: res.data,
+        currentDraftStatus: currentDraftStatus
       });
     });
     localStorage.setItem('leagueSettings', JSON.stringify(this.leagueSettings));
@@ -209,6 +205,37 @@ class App extends React.Component {
     });
   }
 
+  getNextBest(currentDraftStatus, position, index, property) {
+    if(currentDraftStatus.hasOwnProperty('nextBest')
+        && currentDraftStatus.nextBest.hasOwnProperty(position)
+        && currentDraftStatus.nextBest[position].length > 0) {
+      var value = currentDraftStatus.nextBest[position][index][property];
+      if(parseFloat(value)) return parseFloat(Math.round(value * 100) / 100).toFixed(2);
+      else return value;
+    }
+  }
+
+  getNextBestDrop(currentDraftStatus, position) {
+    if(currentDraftStatus.hasOwnProperty('nextBest')
+        && currentDraftStatus.nextBest.hasOwnProperty(position)
+        && currentDraftStatus.nextBest[position].length > 0) {
+      var value = currentDraftStatus.nextBest[position][0].inflated_price - currentDraftStatus.nextBest[position][1].inflated_price;
+      value = value / currentDraftStatus.nextBest[position][0].inflated_price;
+      return (parseFloat(value) * 100).toFixed(2) + "%";
+    }
+  }
+  clearSavedData(event) {
+    var doubleCheck = confirm("Are you sure you want to clear price data and restart the auction?");
+    if(doubleCheck) {
+      this.state.rowData.forEach((player) => {
+        player.purchase_price = null;
+        player.draft_team = null;
+        localStorage.removeItem("player-" + player.player_id);
+      });
+      this.onPlayerDataChange();
+      this.saveSettings();
+    }
+  }
 
   render() {
     const popover = (
@@ -236,6 +263,7 @@ class App extends React.Component {
             </Navbar.Header>
             <Nav>
               <NavItem eventKey={1} href="#" onClick={this.open}>Configure</NavItem>
+              <NavItem eventKey={1} href="#" onClick={this.clearSavedData}>Restart auction</NavItem>
             </Nav>
           </Navbar>
           <Row>
@@ -247,13 +275,62 @@ class App extends React.Component {
             <Panel header="Draft details" eventKey="1">
             <Row>
               <Col md={3}>
-              My remaining budget: <b>${this.state.myRemainingBudget}</b>
+              <Row>
+              <Col md={12}>
+              Inflation rate: <b>{this.formatInflationRate(this.state.currentDraftStatus.inflationRate)}</b>
               </Col>
-              <Col md={3}>
-              Total remaining budget: <b>${this.state.remainingBudget}</b>
+              <Col md={12}>
+              My remaining budget: <b>${this.state.leagueSettings.team_budget - this.state.currentDraftStatus.mySpentBudget}</b>
               </Col>
-              <Col md={3}>
-              Inflation rate: <b>{this.formatInflationRate(this.state.inflationRate)}</b>
+              </Row>
+              </Col>
+              <Col md={9}>
+              <Table striped bordered condensed hover>
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Next best</th>
+                  <th>Value</th>
+                  <th>Second best</th>
+                  <th>Value</th>
+                  <th>Dropoff (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>QB</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'qb', 0, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'qb', 0, 'inflated_price')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'qb', 1, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'qb', 1, 'inflated_price')}</td>
+                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'qb')}</td>
+                </tr>
+                <tr>
+                  <td>RB</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'rb', 0, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'rb', 0, 'inflated_price')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'rb', 1, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'rb', 1, 'inflated_price')}</td>
+                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'rb')}</td>
+                </tr>
+                <tr>
+                  <td>WR</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'wr', 0, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'wr', 0, 'inflated_price')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'wr', 1, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'wr', 1, 'inflated_price')}</td>
+                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'wr')}</td>
+                </tr>
+                <tr>
+                  <td>TE</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'te', 0, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'te', 0, 'inflated_price')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'te', 1, 'name')}</td>
+                  <td>{this.getNextBest(this.state.currentDraftStatus, 'te', 1, 'inflated_price')}</td>
+                  <td>{this.getNextBestDrop(this.state.currentDraftStatus, 'te')}</td>
+                </tr>
+                </tbody>
+                </Table>
               </Col>
             </Row>
             </Panel>
@@ -461,11 +538,29 @@ class App extends React.Component {
 
 ReactDOM.render(<App />, document.getElementById("app"));
 
-function calcInflation(players, startingBudget, teamList) {
+function calcCurrentDraftStatus(players, startingBudget, teamList) {
   let accumulatedValue = 0;
   let usedBudget = 0;
   let mySpentBudget = 0;
-  players.forEach((player) => {
+  let nextBest = {
+    "qb": [],
+    "rb": [],
+    "wr": [],
+    "te": [],
+  };
+
+  let sortedPlayersByValue = players.concat().sort((a, b) => {
+    var val1 = b.base_price;
+    if(!parseFloat(val1)) {
+      val1 = 0;
+    }
+    var val2 = a.base_price;
+    if(!parseFloat(val2)) {
+      val2 = 0;
+    }
+    return val1 - val2;
+  });
+  sortedPlayersByValue.forEach((player) => {
     if(player.hasOwnProperty('purchase_price') && !isNaN(player.purchase_price) && player.purchase_price !== null) {
       accumulatedValue += player.base_price - player.purchase_price;
       usedBudget += player.purchase_price;
@@ -474,12 +569,26 @@ function calcInflation(players, startingBudget, teamList) {
         mySpentBudget += player.purchase_price;
       }
     }
+    else {
+      if(player.position == 'QB' && nextBest.qb.length < 2) {
+        nextBest.qb.push(player);
+      }
+      else if(player.position == 'RB' && nextBest.rb.length < 2) {
+        nextBest.rb.push(player);
+      }
+      else if(player.position == 'WR' && nextBest.wr.length < 2) {
+        nextBest.wr.push(player);
+      }
+      else if(player.position == 'TE' && nextBest.te.length < 2) {
+        nextBest.te.push(player);
+      }
+    }
   });
   let inflationRate = (startingBudget + accumulatedValue) / startingBudget
   players.forEach((player) => {
     player.inflated_price = inflationRate * player.base_price;
   });
-  return {"players": players, "usedBudget": usedBudget, "inflationRate": inflationRate, "mySpentBudget": mySpentBudget};
+  return {"usedBudget": usedBudget, "inflationRate": inflationRate, "mySpentBudget": mySpentBudget, "nextBest": nextBest};
 }
 
 function mergeSavedData(players) {

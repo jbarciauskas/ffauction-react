@@ -54,6 +54,10 @@ class App extends React.Component {
     }
     else this.leagueSettings = JSON.parse(this.leagueSettings);
 
+    if(!this.teamList) {
+      this.teamList = new Array(this.leagueSettings.num_teams);
+    }
+
     let startingBudget = ((this.leagueSettings.num_teams * this.leagueSettings.team_budget)
       - (this.leagueSettings.roster.k * this.leagueSettings.num_teams
           + this.leagueSettings.roster.team_def * this.leagueSettings.num_teams));
@@ -63,10 +67,14 @@ class App extends React.Component {
       inflationRate: 1,
       rowData: [],
       showModal: false,
-      leagueSettings: this.leagueSettings
-    }
+      leagueSettings: this.leagueSettings,
+      teamList: this.teamList,
+    };
 
     this.onPlayerPriceChange = this.onPlayerPriceChange.bind(this);
+    this.onTeamNameChange = this.onTeamNameChange.bind(this);
+    this.getTeamRow = this.getTeamRow.bind(this);
+    this.getTeamRows = this.getTeamRows.bind(this);
     this.close = this.close.bind(this);
     this.open = this.open.bind(this);
     this.onSettingsChange = this.onSettingsChange.bind(this);
@@ -93,9 +101,22 @@ class App extends React.Component {
     let startingBudget = ((this.leagueSettings.num_teams * this.leagueSettings.team_budget)
       - (this.leagueSettings.roster.k * this.leagueSettings.num_teams
           + this.leagueSettings.roster.team_def * this.leagueSettings.num_teams));
+
+    var num_teams_change = this.leagueSettings.num_teams - this.state.teamList.length;
+    if(num_teams_change > 0) {
+      for(var i = 0; i < num_teams_change; i++) {
+        this.state.teamList.push("");
+      }
+    }
+    else if(num_teams_change < 0) {
+      for(var i = num_teams_change; i < 0; i++) {
+        this.state.teamList.pop();
+      }
+    }
     this.setState({
       showModal: false,
       startingBudget: startingBudget,
+      teamList: this.state.teamList,
     });
     axios.post(`http://localhost:5000/players`, this.leagueSettings)
     .then(res => {
@@ -151,6 +172,38 @@ class App extends React.Component {
     });
   }
 
+  getTeamRow(i) {
+    var teamControlId = "team." + i;
+    return <Row style={{"padding-bottom": "5px"}}>
+      <FormGroup controlId={teamControlId}>
+        <Col md={2}>
+          <ControlLabel >Team #{i+1}</ControlLabel>
+        </Col>
+        <Col md={4}>
+          <FormControl type="text" placeholder="Team name..." value={this.state.teamList[i]} onChange={this.onTeamNameChange}/>
+        </Col>
+        </FormGroup>
+    </Row>;
+  }
+
+  getTeamRows(num_teams) {
+    let teamListComponents = [];
+
+    for(var i=0; i < this.leagueSettings.num_teams; i++) {
+      teamListComponents.push(this.getTeamRow(i));
+    }
+    return teamListComponents;
+  }
+
+  onTeamNameChange(e) {
+    var teamId = parseInt(e.target.id.replace("team.",""));
+    this.state.teamList[teamId] = e.target.value;
+    this.setState({
+      teamList: this.state.teamList,
+    });
+  }
+
+
   render() {
     const popover = (
       <Popover id="modal-popover" title="popover">
@@ -166,6 +219,7 @@ class App extends React.Component {
         "padding-top": "2rem",
     };
 
+    let teamListComponents = [];
     return (
         <Grid>
           <Navbar inverse>
@@ -366,6 +420,10 @@ class App extends React.Component {
                     </FormGroup>
                   </Col>
                 </Row>
+                </Tab>
+                <Tab eventKey={4} title="Teams" style={tabPadding}>
+                  <h4>Team list</h4>
+                  {this.getTeamRows(this.state.leagueSettings.num_teams)}
                 </Tab>
                 </Tabs>
             </Form>

@@ -3,7 +3,7 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 import axios from 'axios';
-import {Button,Grid,Row,Col,ControlLabel,FormControl,FormGroup,Form,Modal,OverlayTrigger,Popover,Tooltip} from 'react-bootstrap';
+import {Navbar,Nav,NavItem,Button,Grid,Row,Col,ControlLabel,FormControl,FormGroup,Form,Modal,OverlayTrigger,Popover,Tabs,Tab,Tooltip} from 'react-bootstrap';
 
 
 // pull in the ag-grid styles we're interested in
@@ -162,62 +162,66 @@ class App extends React.Component {
         wow.
       </Tooltip>
     );
-    let containerStyle = {
-        "padding-top": "50px",
+    let tabPadding = {
+        "padding-top": "2rem",
     };
 
     return (
-      <div style={containerStyle}>
         <Grid>
-        <Row>
-        <Col md={3}>
-        Remaining budget: <b>${this.state.remainingBudget}</b>
-        </Col>
-        <Col md={3}>
-        Inflation rate: <b>{this.formatInflationRate(this.state.inflationRate)}</b>
-        </Col>
-        <Col md={2}>
-        <Button
-          bsStyle="primary"
-          bsSize="sm"
-          onClick={this.open}
-        >
-          Configure league settings
-        </Button>
-        </Col>
-        </Row>
-        </Grid>
+          <Navbar inverse>
+            <Navbar.Header>
+              <Navbar.Brand>
+                <a href="#">FFAuction</a>
+              </Navbar.Brand>
+            </Navbar.Header>
+            <Nav>
+              <NavItem eventKey={1} href="#" onClick={this.open}>Configure</NavItem>
+            </Nav>
+          </Navbar>
+          <Row>
+            <Col md={12}>
+              <h1>Draft board</h1>
+            </Col>
+          </Row>
+          <Row>
+            <Col md={3}>
+            Remaining budget: <b>${this.state.remainingBudget}</b>
+            </Col>
+            <Col md={3}>
+            Inflation rate: <b>{this.formatInflationRate(this.state.inflationRate)}</b>
+            </Col>
+          </Row>
 
-        <Modal show={this.state.showModal} onHide={this.close}>
+          <Modal show={this.state.showModal} onHide={this.close}>
           <Modal.Header closeButton>
             <Modal.Title>League settings</Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form>
-              <Grid>
-                <h3>Auction settings</h3>
-                <Row>
-                  <Col xs={2}>
-                    <FormGroup controlId="num_teams">
-                      <ControlLabel >Teams</ControlLabel>
-                      <FormControl type="number" placeholder="12" value={this.state.leagueSettings.num_teams} onChange={this.onSettingsChange}/>
-                    </FormGroup>
-                  </Col>
-                  <Col xs={2}>
-                    <FormGroup controlId="team_budget">
-                      <ControlLabel >Budget</ControlLabel>
-                      <FormControl type="number" placeholder="200" value={this.state.leagueSettings.team_budget} onChange={this.onSettingsChange}/>
-                    </FormGroup>
-                  </Col>
-                  <Col xs={2}>
-                    <FormGroup controlId="starter_budget_pct">
-                      <ControlLabel >Starter Budget %</ControlLabel>
-                      <FormControl type="number" placeholder=".88" step="0.01" value={this.state.leagueSettings.starter_budget_pct} onChange={this.onSettingsChange} />
-                    </FormGroup>
-                  </Col>
+                <Tabs defaultActiveKey={1}>
+                <Tab eventKey={1} title="Auction settings" style={tabPadding}>
+                  <Row>
+                    <Col xs={2}>
+                      <FormGroup controlId="num_teams">
+                        <ControlLabel >Teams</ControlLabel>
+                        <FormControl type="number" placeholder="12" value={this.state.leagueSettings.num_teams} onChange={this.onSettingsChange}/>
+                      </FormGroup>
+                    </Col>
+                    <Col xs={2}>
+                      <FormGroup controlId="team_budget">
+                        <ControlLabel >Budget</ControlLabel>
+                        <FormControl type="number" placeholder="200" value={this.state.leagueSettings.team_budget} onChange={this.onSettingsChange}/>
+                      </FormGroup>
+                    </Col>
+                    <Col xs={2}>
+                      <FormGroup controlId="starter_budget_pct">
+                        <ControlLabel >Starter Budget %</ControlLabel>
+                        <FormControl type="number" placeholder=".88" step="0.01" value={this.state.leagueSettings.starter_budget_pct} onChange={this.onSettingsChange} />
+                      </FormGroup>
+                    </Col>
                   </Row>
-
-                 <h3>Roster settings</h3>
+                </Tab>
+                <Tab eventKey={2} title="Roster settings" style={tabPadding}>
                 <Row>
                   <Col xs={1}>
                     <FormGroup controlId="roster[qb]">
@@ -270,7 +274,8 @@ class App extends React.Component {
                     </FormGroup>
                   </Col>
                 </Row>
-                <h3>Scoring settings</h3>
+                </Tab>
+                <Tab eventKey={3} title="Scoring settings" style={tabPadding}>
                 <h4>Passing</h4>
                 <Row>
                   <Col xs={1}>
@@ -361,18 +366,23 @@ class App extends React.Component {
                     </FormGroup>
                   </Col>
                 </Row>
-               </Grid>
+                </Tab>
+                </Tabs>
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={this.saveSettings}>Update prices</Button>
+            <Button onClick={this.saveSettings}>Save and update prices</Button>
           </Modal.Footer>
         </Modal>
+        <Row>
+        <Col md={12}>
         <PlayerGrid
           rowData={this.state.rowData}
           onPlayerPriceChange={this.onPlayerPriceChange}>
         </PlayerGrid>
-      </div>
+        </Col>
+        </Row>
+        </Grid>
     );
   }
 }

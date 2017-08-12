@@ -54,7 +54,7 @@ export default class extends Component {
             {headerName: "Projected Points", field: "points", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Base Value ($)", field: "base_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Inf Value ($)", field: "inflated_price", filter: "number", cellRenderer: formatNumber, sort: 'desc', sortingOrder: ['desc','asc']},
-            {headerName: "Actual ($)", field: "purchase_price", filter: "number", cellRenderer: formatInt, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceChange}
+            {headerName: "Purchase ($)", field: "purchase_price", filter: "number", cellRenderer: formatInt, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceChange},
         ];
     }
 
@@ -64,11 +64,9 @@ export default class extends Component {
         };
 
         return (
-            <div className="ag-fresh">
-            <Grid>
-              <h1>Draft board</h1>
+            <div >
               <Row>
-                <Col md={2}>
+                <Col md={3}>
                   <FormControl type="text" onChange={this.onQuickFilterText.bind(this)}
                                            placeholder="Type text to filter..."/>
                 </Col>
@@ -77,8 +75,9 @@ export default class extends Component {
                 </Col>
               </Row>
               <Row>
-              <Col md={12} style={containerStyle}>
+              <Col md={12} >
 
+              <div style={containerStyle} className="ag-fresh">
                 <AgGridReact
                     // properties
                     columnDefs={this.state.columnDefs}
@@ -92,10 +91,10 @@ export default class extends Component {
                     onGridReady={this.onGridReady}
                     >
                 </AgGridReact>
+                </div>
                 </Col>
                 </Row>
-              </Grid>
-            </div>
+                </div>
         )
     }
 }

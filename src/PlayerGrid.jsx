@@ -7,7 +7,7 @@ export default class extends Component {
     constructor(props) {
         super(props);
 
-        this.onPlayerPriceChange = this.onPlayerPriceChange.bind(this);
+        this.onPlayerDataChange = this.onPlayerDataChange.bind(this);
         this.clearSavedPrices = this.clearSavedPrices.bind(this);
         this.onGridReady = this.onGridReady.bind(this);
         this.getRowStyle = this.getRowStyle.bind(this);
@@ -27,15 +27,16 @@ export default class extends Component {
         this.setState({quickFilterText: event.target.value});
     }
 
-    onPlayerPriceChange(event) {
-      if(event.column.colId == "purchase_price") {
+    onPlayerDataChange(event) {
         let player = event.data;
         event.data.purchase_price = parseFloat(event.data.purchase_price);
-        localStorage.setItem(event.data.player_id + ".purchase_price", event.data.purchase_price);
+        localStorage.setItem("player-" + event.data.player_id, JSON.stringify({
+          "purchase_price": event.data.purchase_price,
+          "draft_team": event.data.draft_team,
+        }));
         console.log(player);
         // bubble up
-        this.props.onPlayerPriceChange(event);
-      }
+        this.props.onPlayerDataChange(event);
     }
 
     clearSavedPrices(event) {
@@ -43,7 +44,7 @@ export default class extends Component {
         player.purchase_price = null;
         localStorage.removeItem(player.player_id + ".purchase_price");
       });
-      this.props.onPlayerPriceChange();
+      this.props.onPlayerDataChange();
       this.gridApi.setRowData(this.props.rowData);
     }
 
@@ -55,8 +56,8 @@ export default class extends Component {
             {headerName: "Projected Points", field: "points", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Base Value ($)", field: "base_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Inf Value ($)", field: "inflated_price", filter: "number", cellRenderer: formatNumber, sort: 'desc', sortingOrder: ['desc','asc']},
-            {headerName: "Purchase ($)", field: "purchase_price", filter: "number", cellRenderer: formatInt, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceChange},
-            {headerName: "Drafted by", field: "draft_team", filter: "text", cellEditor: 'select', cellEditorParams: {'values':this.props.teamList}, editable: true},
+            {headerName: "Purchase ($)", field: "purchase_price", filter: "number", cellRenderer: formatInt, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerDataChange},
+            {headerName: "Drafted by", field: "draft_team", filter: "text", cellEditor: 'select', cellEditorParams: {'values':this.props.teamList}, editable: true, onCellValueChanged:this.onPlayerDataChange},
         ];
     }
 
@@ -99,6 +100,7 @@ export default class extends Component {
                     enableSorting
                     enableFilter
                     singleClickEdit
+                    stopEditingWhenGridLosesFocus
                     getRowStyle={this.getRowStyle}
 
                     // events

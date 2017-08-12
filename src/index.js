@@ -74,7 +74,7 @@ class App extends React.Component {
       teamList: this.teamList,
     };
 
-    this.onPlayerPriceChange = this.onPlayerPriceChange.bind(this);
+    this.onPlayerDataChange = this.onPlayerDataChange.bind(this);
     this.onTeamNameChange = this.onTeamNameChange.bind(this);
     this.getTeamRow = this.getTeamRow.bind(this);
     this.getTeamRows = this.getTeamRows.bind(this);
@@ -85,7 +85,7 @@ class App extends React.Component {
     this.saveSettings();
   }
 
-  onPlayerPriceChange() {
+  onPlayerDataChange() {
     console.log("Recalculating inflation");
     let inflationData = calcInflation(this.state.rowData, this.state.startingBudget);
     this.setState({
@@ -122,7 +122,7 @@ class App extends React.Component {
     });
     axios.post(`http://localhost:5000/players`, this.leagueSettings)
     .then(res => {
-      let inflationData = calcInflation(mergeSavedPrices(res.data), this.state.startingBudget);
+      let inflationData = calcInflation(mergeSavedData(res.data), this.state.startingBudget);
       this.setState({
         startingBudget: this.state.startingBudget,
         rowData: inflationData['players'],
@@ -445,7 +445,7 @@ class App extends React.Component {
         <PlayerGrid
           rowData={this.state.rowData}
           teamList={this.state.teamList}
-          onPlayerPriceChange={this.onPlayerPriceChange}>
+          onPlayerDataChange={this.onPlayerDataChange}>
         </PlayerGrid>
         </Col>
         </Row>
@@ -472,13 +472,14 @@ function calcInflation(players, startingBudget) {
   return {"players": players, "usedBudget": usedBudget, "inflationRate": inflationRate};
 }
 
-function mergeSavedPrices(players) {
+function mergeSavedData(players) {
   players.forEach((player) => {
-    let purchasePrice = localStorage.getItem(player.player_id + ".purchase_price");
-    if(purchasePrice) {
-      player.purchase_price = purchasePrice;
+    let savedPlayerData = localStorage.getItem("player-" + player.player_id);
+    if(savedPlayerData) {
+      savedPlayerData = JSON.parse(savedPlayerData);
+      player.purchase_price = savedPlayerData.purchase_price;
+      player.draft_team = savedPlayerData.draft_team;
     }
-    purchasePrice = null;
   });
   return players;
 }

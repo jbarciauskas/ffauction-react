@@ -462,7 +462,7 @@ function calcInflation(players, startingBudget) {
   players.forEach((player) => {
     if(player.hasOwnProperty('purchase_price') && !isNaN(player.purchase_price) && player.purchase_price !== null) {
       accumulatedValue += player.base_price - player.purchase_price;
-      usedBudget = player.purchase_price;
+      usedBudget += player.purchase_price;
     }
   });
   let inflationRate = (startingBudget + accumulatedValue) / startingBudget

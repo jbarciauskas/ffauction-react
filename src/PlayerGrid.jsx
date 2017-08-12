@@ -8,7 +8,7 @@ export default class extends Component {
         super(props);
 
         this.onPlayerDataChange = this.onPlayerDataChange.bind(this);
-        this.clearSavedPrices = this.clearSavedPrices.bind(this);
+        this.clearSavedData = this.clearSavedData.bind(this);
         this.onGridReady = this.onGridReady.bind(this);
         this.getRowStyle = this.getRowStyle.bind(this);
         this.state = {
@@ -39,10 +39,11 @@ export default class extends Component {
         this.props.onPlayerDataChange(event);
     }
 
-    clearSavedPrices(event) {
+    clearSavedData(event) {
       this.props.rowData.forEach((player) => {
         player.purchase_price = null;
-        localStorage.removeItem(player.player_id + ".purchase_price");
+        player.draft_team = null;
+        localStorage.removeItem("player-" + player.player_id);
       });
       this.props.onPlayerDataChange();
       this.gridApi.setRowData(this.props.rowData);
@@ -84,7 +85,7 @@ export default class extends Component {
                                            placeholder="Type text to filter..."/>
                 </Col>
                 <Col md={1}>
-                <Button id="btDestroyGrid" onClick={this.clearSavedPrices}>Clear purchase prices</Button>
+                <Button id="btDestroyGrid" onClick={this.clearSavedData}>Restart auction and reset values</Button>
                 </Col>
               </Row>
               <Row>

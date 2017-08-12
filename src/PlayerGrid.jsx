@@ -1,6 +1,6 @@
 import React, {Component} from "react";
 import {AgGridReact} from "ag-grid-react";
-import {Button, Grid, Row, Col} from "react-bootstrap";
+import {Button, Grid, Row, Col, FormControl} from "react-bootstrap";
 
 
 export default class extends Component {
@@ -64,11 +64,21 @@ export default class extends Component {
         };
 
         return (
-            <div style={containerStyle} className="ag-fresh">
-            <h1>Players</h1>
-                <input type="text" onChange={this.onQuickFilterText.bind(this)}
+            <div className="ag-fresh">
+            <Grid>
+              <h1>Draft board</h1>
+              <Row>
+                <Col md={2}>
+                  <FormControl type="text" onChange={this.onQuickFilterText.bind(this)}
                                            placeholder="Type text to filter..."/>
+                </Col>
+                <Col md={1}>
                 <Button id="btDestroyGrid" onClick={this.clearSavedPrices}>Clear purchase prices</Button>
+                </Col>
+              </Row>
+              <Row>
+              <Col md={12} style={containerStyle}>
+
                 <AgGridReact
                     // properties
                     columnDefs={this.state.columnDefs}
@@ -82,6 +92,9 @@ export default class extends Component {
                     onGridReady={this.onGridReady}
                     >
                 </AgGridReact>
+                </Col>
+                </Row>
+              </Grid>
             </div>
         )
     }

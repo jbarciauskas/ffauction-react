@@ -28,15 +28,16 @@ export default class extends Component {
     }
 
     onPlayerDataChange(event) {
-        let player = event.data;
-        event.data.purchase_price = parseFloat(event.data.purchase_price);
-        localStorage.setItem("player-" + event.data.player_id, JSON.stringify({
-          "purchase_price": event.data.purchase_price,
-          "draft_team": event.data.draft_team,
-        }));
-        console.log(player);
-        // bubble up
-        this.props.onPlayerDataChange(event);
+      let player = event.data;
+      event.data.purchase_price = parseFloat(event.data.purchase_price);
+      localStorage.setItem("player-" + event.data.player_id, JSON.stringify({
+        "purchase_price": event.data.purchase_price,
+        "draft_team": event.data.draft_team,
+      }));
+      console.log(player);
+      // bubble up
+      this.props.onPlayerDataChange(event);
+      this.gridApi.setRowData(this.props.rowData);
     }
 
     clearSavedData(event) {
@@ -49,6 +50,10 @@ export default class extends Component {
       this.gridApi.setRowData(this.props.rowData);
     }
 
+    selectDropDownCellRenderer(params) {
+      return (params.value ? params.value : "") + '<div class="pull-right"><span class="caret"/></div>';
+    }
+
     createColumnDefs() {
         return [
             {headerName: "Player name", field: "name", filter: "text"},
@@ -58,7 +63,7 @@ export default class extends Component {
             {headerName: "Base Value ($)", field: "base_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Inf Value ($)", field: "inflated_price", filter: "number", cellRenderer: formatNumber, sort: 'desc', sortingOrder: ['desc','asc']},
             {headerName: "Purchase ($)", field: "purchase_price", filter: "number", cellRenderer: formatInt, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerDataChange},
-            {headerName: "Drafted by", field: "draft_team", filter: "text", cellEditor: 'select', cellEditorParams: {'values':this.props.teamList}, editable: true, onCellValueChanged:this.onPlayerDataChange},
+            {headerName: "Drafted by", field: "draft_team", filter: "text", cellEditor: 'select', cellEditorParams: {'values':this.props.teamList}, editable: true, onCellValueChanged:this.onPlayerDataChange, cellRenderer:this.selectDropDownCellRenderer},
         ];
     }
 

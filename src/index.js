@@ -3,7 +3,7 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 import axios from 'axios';
-import {Navbar,Nav,NavItem,Button,Grid,Row,Col,ControlLabel,FormControl,FormGroup,Form,Modal,OverlayTrigger,Popover,Tabs,Tab,Tooltip} from 'react-bootstrap';
+import {Accordion,Panel,Navbar,Nav,NavItem,Button,Grid,Row,Col,ControlLabel,FormControl,FormGroup,Form,Modal,OverlayTrigger,Popover,Tabs,Tab,Tooltip} from 'react-bootstrap';
 
 
 // pull in the ag-grid styles we're interested in
@@ -55,7 +55,10 @@ class App extends React.Component {
     else this.leagueSettings = JSON.parse(this.leagueSettings);
 
     if(!this.teamList) {
-      this.teamList = new Array(this.leagueSettings.num_teams);
+      this.teamList = [];
+      for(var i = 0; i < this.leagueSettings.num_teams; i++) {
+        this.teamList.push("Team #" + (i + 1));
+      }
     }
 
     let startingBudget = ((this.leagueSettings.num_teams * this.leagueSettings.team_budget)
@@ -80,7 +83,6 @@ class App extends React.Component {
     this.onSettingsChange = this.onSettingsChange.bind(this);
     this.saveSettings = this.saveSettings.bind(this);
     this.saveSettings();
-
   }
 
   onPlayerPriceChange() {
@@ -174,10 +176,12 @@ class App extends React.Component {
 
   getTeamRow(i) {
     var teamControlId = "team." + i;
+    var yourTeamNote = ""
+    if(i == 0) yourTeamNote = <i>(your team)</i>;
     return <Row style={{"padding-bottom": "5px"}}>
       <FormGroup controlId={teamControlId}>
-        <Col md={2}>
-          <ControlLabel >Team #{i+1}</ControlLabel>
+        <Col md={3}>
+          <ControlLabel >Team #{i+1}</ControlLabel> {' '}{yourTeamNote}
         </Col>
         <Col md={4}>
           <FormControl type="text" placeholder="Team name..." value={this.state.teamList[i]} onChange={this.onTeamNameChange}/>
@@ -237,6 +241,10 @@ class App extends React.Component {
               <h1>Draft board</h1>
             </Col>
           </Row>
+          <Accordion>
+            <Panel header="Draft details" eventKey="1">
+            </Panel>
+          </Accordion>
           <Row>
             <Col md={3}>
             Remaining budget: <b>${this.state.remainingBudget}</b>
@@ -277,31 +285,31 @@ class App extends React.Component {
                 </Tab>
                 <Tab eventKey={2} title="Roster settings" style={tabPadding}>
                 <Row>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[qb]">
                       <ControlLabel >QBs</ControlLabel>
                       <FormControl type="number" placeholder="1" value={this.state.leagueSettings.roster.qb} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[rb]">
                       <ControlLabel >RBs</ControlLabel>
                       <FormControl type="number" placeholder="2" value={this.state.leagueSettings.roster.rb} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[wr]">
                       <ControlLabel >WRs</ControlLabel>
                       <FormControl type="number" placeholder="2" value={this.state.leagueSettings.roster.wr} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[te]">
                       <ControlLabel >TEs</ControlLabel>
                       <FormControl type="number" placeholder="1" value={this.state.leagueSettings.roster.te} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[flex]">
                       <ControlLabel >Flex</ControlLabel>
                       <FormControl type="number" placeholder="1" value={this.state.leagueSettings.roster.flex} onChange={this.onSettingsChange}/>
@@ -309,19 +317,19 @@ class App extends React.Component {
                   </Col>
                   </Row>
                   <Row>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[k]">
                       <ControlLabel >Kickers</ControlLabel>
                       <FormControl type="number" placeholder="1" value={this.state.leagueSettings.roster.k} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[team_def]">
                       <ControlLabel >Def</ControlLabel>
                       <FormControl type="number" placeholder="1" value={this.state.leagueSettings.roster.team_def} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="roster[bench]">
                       <ControlLabel >Bench</ControlLabel>
                       <FormControl type="number" placeholder="6" value={this.state.leagueSettings.roster.bench} onChange={this.onSettingsChange}/>
@@ -332,31 +340,31 @@ class App extends React.Component {
                 <Tab eventKey={3} title="Scoring settings" style={tabPadding}>
                 <h4>Passing</h4>
                 <Row>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[passYds]">
                       <ControlLabel >Yards/point</ControlLabel>
                       <FormControl type="number" placeholder="25" value={this.state.leagueSettings.scoring.passYds} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[passTds]">
                       <ControlLabel >TDs</ControlLabel>
                       <FormControl type="number" placeholder="4" value={this.state.leagueSettings.scoring.passTds} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[passComp]">
                       <ControlLabel >Completions</ControlLabel>
                       <FormControl type="number" placeholder="0" value={this.state.leagueSettings.scoring.passComp} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                   <Col xs={1}>
+                   <Col xs={2}>
                     <FormGroup controlId="scoring[sacks]">
                       <ControlLabel >Sacks</ControlLabel>
                       <FormControl type="number" placeholder="0" step="0.5" value={this.state.leagueSettings.scoring.sacks} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                   <Col xs={1}>
+                   <Col xs={2}>
                     <FormGroup controlId="scoring[passInt]">
                       <ControlLabel >Pass Ints</ControlLabel>
                       <FormControl type="number" placeholder="-1" step="0.5" value={this.state.leagueSettings.scoring.passInt} onChange={this.onSettingsChange}/>
@@ -365,25 +373,25 @@ class App extends React.Component {
                 </Row>
                 <h4>Rushing</h4>
                 <Row>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[rushYds]">
                       <ControlLabel >Yards/point</ControlLabel>
                       <FormControl type="number" placeholder="10" value={this.state.leagueSettings.scoring.rushYds} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[rushTds]">
                       <ControlLabel >TDs</ControlLabel>
                       <FormControl type="number" placeholder="6" value={this.state.leagueSettings.scoring.rushTds} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[rushAtt]">
                       <ControlLabel >Attempts</ControlLabel>
                       <FormControl type="number" placeholder="0" value={this.state.leagueSettings.scoring.rushAtt} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[fumbles]">
                       <ControlLabel >Fumbles</ControlLabel>
                       <FormControl type="number" placeholder="-2" step="0.5" value={this.state.leagueSettings.scoring.fumbles} onChange={this.onSettingsChange}/>
@@ -392,19 +400,19 @@ class App extends React.Component {
                 </Row>
                 <h4>Receiving</h4>
                 <Row>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[recYds]">
                       <ControlLabel >Yards/point</ControlLabel>
                       <FormControl type="number" placeholder="10" value={this.state.leagueSettings.scoring.recYds} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[recTds]">
                       <ControlLabel >TDs</ControlLabel>
                       <FormControl type="number" placeholder="6" value={this.state.leagueSettings.scoring.recTds} onChange={this.onSettingsChange}/>
                     </FormGroup>
                   </Col>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[rec]">
                       <ControlLabel >Receptions</ControlLabel>
                       <FormControl type="number" placeholder="0" step="0.5" value={this.state.leagueSettings.scoring.rec} onChange={this.onSettingsChange}/>
@@ -413,7 +421,7 @@ class App extends React.Component {
                 </Row>
                 <h4>Other</h4>
                 <Row>
-                  <Col xs={1}>
+                  <Col xs={2}>
                     <FormGroup controlId="scoring[twoPts]">
                       <ControlLabel >2pts</ControlLabel>
                       <FormControl type="number" placeholder="2" value={this.state.leagueSettings.scoring.twoPts} onChange={this.onSettingsChange}/>
@@ -436,6 +444,7 @@ class App extends React.Component {
         <Col md={12}>
         <PlayerGrid
           rowData={this.state.rowData}
+          teamList={this.state.teamList}
           onPlayerPriceChange={this.onPlayerPriceChange}>
         </PlayerGrid>
         </Col>

@@ -10,6 +10,7 @@ export default class extends Component {
         this.onPlayerPriceChange = this.onPlayerPriceChange.bind(this);
         this.clearSavedPrices = this.clearSavedPrices.bind(this);
         this.onGridReady = this.onGridReady.bind(this);
+        this.getRowStyle = this.getRowStyle.bind(this);
         this.state = {
             quickFilterText: null,
             columnDefs: this.createColumnDefs()
@@ -55,8 +56,18 @@ export default class extends Component {
             {headerName: "Base Value ($)", field: "base_price", filter: "number", cellRenderer: formatNumber, sortingOrder: ['desc','asc']},
             {headerName: "Inf Value ($)", field: "inflated_price", filter: "number", cellRenderer: formatNumber, sort: 'desc', sortingOrder: ['desc','asc']},
             {headerName: "Purchase ($)", field: "purchase_price", filter: "number", cellRenderer: formatInt, sortingOrder: ['desc','asc'], editable: true, cellEditor: "text", onCellValueChanged:this.onPlayerPriceChange},
-            {headerName: "Drafted by", field: "draft_team", filter: "text"},
+            {headerName: "Drafted by", field: "draft_team", filter: "text", cellEditor: 'select', cellEditorParams: {'values':this.props.teamList}, editable: true},
         ];
+    }
+
+    getRowStyle(params) {
+      var player = params.data;
+      if(player.hasOwnProperty('purchase_price') && !isNaN(player.purchase_price) && player.purchase_price !== null) {
+        return {
+          color: 'gray',
+          "font-style": 'italic',
+        };
+      }
     }
 
     render() {
@@ -87,6 +98,8 @@ export default class extends Component {
 
                     enableSorting
                     enableFilter
+                    singleClickEdit
+                    getRowStyle={this.getRowStyle}
 
                     // events
                     onGridReady={this.onGridReady}
